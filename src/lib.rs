@@ -148,9 +148,33 @@ pub trait FloatChecker<F> {
 /// The exception to this rule is for methods that return an `Option` containing
 /// a `NoisyFloat`, in which case the result would be `None` if the value is invalid.
 #[repr(transparent)]
-pub struct NoisyFloat<F: Float, C: FloatChecker<F>> {
+pub struct NoisyFloat<F, C> {
     value: F,
     checker: PhantomData<C>,
+}
+
+impl<F, C> NoisyFloat<F, C> {
+    /// Create a `NoisyFloat` with the given value.
+    ///
+    /// The value is not checked for validity, and the caller will have to ensure the passed value is correct with the given `FloatChecker` type.
+    ///
+    /// This is a const function and can be used to create const values.
+    ///
+    /// ```rust
+    /// # use noisy_float::types::R32;
+    /// const GRAVITY: R32 = unsafe { R32::const_unchecked_new(9.82) };
+    /// ```
+    pub const unsafe fn const_unchecked_new(value: F) -> Self {
+        Self::unchecked_new(value)
+    }
+
+    #[inline]
+    const fn unchecked_new(value: F) -> Self {
+        NoisyFloat {
+            value,
+            checker: PhantomData,
+        }
+    }
 }
 
 impl<F: Float, C: FloatChecker<F>> NoisyFloat<F, C> {
@@ -163,14 +187,6 @@ impl<F: Float, C: FloatChecker<F>> NoisyFloat<F, C> {
         Self::unchecked_new(value)
     }
 
-    #[inline]
-    fn unchecked_new(value: F) -> Self {
-        NoisyFloat {
-            value: value,
-            checker: PhantomData,
-        }
-    }
-
     /// Tries to construct a `NoisyFloat` with the given value.
     ///
     /// Returns `None` if the value is invalid.
@@ -178,7 +194,7 @@ impl<F: Float, C: FloatChecker<F>> NoisyFloat<F, C> {
     pub fn try_new(value: F) -> Option<Self> {
         if C::check(value) {
             Some(NoisyFloat {
-                value: value,
+                value,
                 checker: PhantomData,
             })
         } else {

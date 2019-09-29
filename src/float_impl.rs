@@ -492,7 +492,7 @@ impl<F: Float, C: FloatChecker<F>> Num for NoisyFloat<F, C> {
     type FromStrRadixErr = F::FromStrRadixErr;
     #[inline]
     fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
-        F::from_str_radix(str, radix).map(|v| Self::new(v))
+        F::from_str_radix(str, radix).map(Self::new)
     }
 }
 
@@ -609,7 +609,7 @@ impl<F: Float + FromPrimitive, C: FloatChecker<F>> FromPrimitive for NoisyFloat<
 impl<F: Float, C: FloatChecker<F>> NumCast for NoisyFloat<F, C> {
     #[inline]
     fn from<T: ToPrimitive>(n: T) -> Option<Self> {
-        F::from(n).and_then(|v| Self::try_new(v))
+        F::from(n).and_then(Self::try_new)
     }
 }
 
@@ -630,7 +630,7 @@ impl<C: FloatChecker<f64>> From<NoisyFloat<f64, C>> for f64 {
 impl<C: FloatChecker<f32>> From<NoisyFloat<f32, C>> for f64 {
     #[inline]
     fn from(n: NoisyFloat<f32, C>) -> Self {
-        n.value as f64
+        From::from(n.value)
     }
 }
 
