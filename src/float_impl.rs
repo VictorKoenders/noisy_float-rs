@@ -108,13 +108,9 @@ impl<F: Float, C: FloatChecker<F>> PartialOrd for NoisyFloat<F, C> {
 impl<F: Float, C: FloatChecker<F>> Ord for NoisyFloat<F, C> {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.value < other.value {
-            Ordering::Less
-        } else if self.value == other.value {
-            Ordering::Equal
-        } else {
-            Ordering::Greater
-        }
+        self.value
+            .partial_cmp(&other.value)
+            .unwrap_or(Ordering::Less)
     }
 }
 
